@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sparklines.js - Vanilla JavaScript Sparklines Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      h2 {
+        color: #666;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-top: 30px;
+      }
+      .chart-section {
+        margin: 20px 0;
+        padding: 15px;
+        background: #fafafa;
+        border-radius: 5px;
+      }
+      .chart-example {
+        margin: 15px 0;
+        padding: 10px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+      }
+      .chart-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #444;
+      }
+      .chart-container {
+        margin: 10px 0;
+        padding: 5px;
+        border: 1px solid #ccc;
+        background: white;
+        min-height: 30px;
+      }
+      .code-example {
+        background: #f8f8f8;
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin: 10px 0;
+        font-family: monospace;
+        font-size: 12px;
+        overflow-x: auto;
+      }
+      .inline-data {
+        color: #666;
+        font-style: italic;
+      }
+      .description {
+        margin: 10px 0;
+        color: #555;
+      }
+      .feature-list {
+        background: #e8f4fd;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .feature-list h3 {
+        margin-top: 0;
+        color: #2c5aa0;
+      }
+      .feature-list ul {
+        margin: 10px 0;
+      }
+      .feature-list li {
+        margin: 5px 0;
+      }
+
+      .disclaimer {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 20px 0;
+        color: #856404;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      /* Interactive Demo Styles */
+      .interactive-demo {
+        display: flex;
+        gap: 30px;
+        margin: 20px 0;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+      }
+
+      .demo-chart {
+        flex: 1;
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .demo-chart-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #444;
+        font-size: 14px;
+      }
+
+      .demo-chart-container {
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #eee;
+        background: white;
+        border-radius: 3px;
+        padding: 10px;
+        width: 100%;
+        max-width: 200px;
+      }
+
+      .demo-controls {
+        flex: 1;
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+
+      .control-group {
+        margin-bottom: 15px;
+      }
+
+      .control-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+        font-size: 14px;
+      }
+
+      .control-group input[type="text"],
+      .control-group select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+
+      .control-group input[type="color"] {
+        width: 60px;
+        height: 35px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      .control-group input[type="checkbox"] {
+        margin-right: 8px;
+      }
+
+      .control-group button {
+        background: #3366cc;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        margin-bottom: 5px;
+      }
+
+      .control-group button:hover {
+        background: #2c5aa0;
+      }
+
+      .control-group button:last-child {
+        background: #666;
+      }
+
+      .control-group button:last-child:hover {
+        background: #555;
+      }
+
+      .code-output {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f8f8;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+
+      .code-output h4 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 14px;
+      }
+
+      .code-output pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 10px;
+        border-radius: 3px;
+        font-size: 12px;
+        overflow-x: auto;
+        margin: 0;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Fix for HTML comment sparklines - ensure elements are visible */
+      .sparkline-comment {
+        display: inline-block;
+        width: 80px;
+        height: 30px;
+      }
+
+      /* Ensure other sparkline elements are also properly sized */
+      .sparkline,
+      .sparkline-attr {
+        display: inline-block;
+        width: 80px;
+        height: 30px;
+      }
+
+      @media (max-width: 768px) {
+        .interactive-demo {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Sparklines.js - Vanilla JavaScript Sparklines Library</h1>
+
+      <div style="text-align: center; margin-bottom: 20px">
+        <a
+          href="https://github.com/maxkostinevich/sparklines.js"
+          style="
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          "
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+            />
+          </svg>
+          View on GitHub
+        </a>
+      </div>
+
+      <div class="disclaimer">
+        <strong>Disclaimer:</strong><br />
+        sparklines.js is a derivative work of jquery.sparkline.js v2.1.2<br />
+        (c) Splunk, Inc., authored by Gareth Watts.<br />
+        The original project was licensed under the New BSD License.<br />
+        This library has been refactored and rewritten to remove the jQuery
+        dependency, modernize the code, and adapt it for current browsers.
+        <br />
+        sparklines.js is released under the MIT License, with attribution to the
+        original work as required.
+      </div>
+
+      <div class="feature-list">
+        <h3>Features</h3>
+        <ul>
+          <li>✅ No jQuery dependency - Pure vanilla JavaScript</li>
+          <li>
+            ✅ All 7 chart types: Line, Bar, Tristate, Discrete, Bullet, Pie,
+            Box
+          </li>
+          <li>✅ Interactive tooltips and hover effects</li>
+          <li>✅ Canvas and VML rendering support</li>
+          <li>✅ Composite charts (multiple sparklines layered)</li>
+          <li>✅ Data parsing from HTML content, attributes, and comments</li>
+          <li>✅ Customizable colors, sizes, and formatting</li>
+          <li>✅ Range maps and value lookups</li>
+          <li>✅ Custom events (sparklineClick, sparklineRegionChange)</li>
+        </ul>
+      </div>
+
+      <h2>Interactive Demo</h2>
+      <div class="chart-section">
+        <div class="description">
+          Try out different chart types and options in real-time. Customize the
+          settings below and see the changes instantly.
+        </div>
+
+        <div class="interactive-demo">
+          <div class="demo-controls">
+            <div class="control-group">
+              <label for="chart-type">Chart Type:</label>
+              <select id="chart-type">
+                <option value="line">Line</option>
+                <option value="bar">Bar</option>
+                <option value="pie">Pie</option>
+                <option value="tristate">Tristate</option>
+                <option value="discrete">Discrete</option>
+                <option value="bullet">Bullet</option>
+                <option value="box">Box</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="data-input">Data (comma-separated):</label>
+              <input
+                type="text"
+                id="data-input"
+                value="1,4,6,6,8,5,3,5"
+                placeholder="e.g., 1,2,3,4,5"
+              />
+            </div>
+
+            <div class="control-group">
+              <label for="width">Width:</label>
+              <input type="text" id="width" value="80px" />
+            </div>
+
+            <div class="control-group">
+              <label for="height">Height:</label>
+              <input type="text" id="height" value="30px" />
+            </div>
+
+            <div class="control-group">
+              <label for="line-color">Line Color:</label>
+              <input type="color" id="line-color" value="#3366cc" />
+            </div>
+
+            <div class="control-group">
+              <label for="fill-color">Fill Color:</label>
+              <input type="color" id="fill-color" value="#cdf" />
+            </div>
+
+            <div class="control-group">
+              <label for="bar-color">Bar Color:</label>
+              <input type="color" id="bar-color" value="#3366cc" />
+            </div>
+
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="show-spots" /> Show Spots
+              </label>
+            </div>
+
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="show-fill" /> Show Fill
+              </label>
+            </div>
+
+            <div class="control-group">
+              <button id="update-chart">Update Chart</button>
+              <button id="reset-chart">Reset</button>
+            </div>
+
+            <div class="code-output">
+              <h4>Generated Code:</h4>
+              <pre id="generated-code">
+sparklines('#demo-chart', [1,4,6,6,8,5,3,5], { width: '80px', height: '30px' });</pre
+              >
+            </div>
+          </div>
+
+          <div class="demo-chart">
+            <div class="demo-chart-title">Interactive Chart</div>
+            <div class="demo-chart-container">
+              <span id="demo-interactive">1,4,6,6,8,5,3,5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Line Charts</h2>
+      <div class="chart-section">
+        <div class="description">
+          Line charts are the default chart type. They can display filled areas,
+          spots, and normal ranges.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Basic Line Chart</div>
+          <div class="chart-container">
+            <span id="line1">1,4,6,6,8,5,3,5</span>
+          </div>
+          <div class="code-example">
+            sparklines('#line1', [1,4,6,6,8,5,3,5], { width: '80px', height:
+            '30px' });
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Filled Line Chart with Spots</div>
+          <div class="chart-container">
+            <span id="line2">2,4,3,1,5,4,6,8</span>
+          </div>
+          <div class="code-example">
+            sparklines('#line2', [2,4,3,1,5,4,6,8], { fillColor: '#cdf',
+            lineColor: '#00f', spotColor: '#f80', spotRadius: 3, lineWidth: 2,
+            width: '80px', height: '30px' });
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Line Chart with Normal Range</div>
+          <div class="chart-container">
+            <span id="line3">3,7,2,9,1,4,6,8,2,5</span>
+          </div>
+          <div class="code-example">
+            sparklines('#line3', [3,7,2,9,1,4,6,8,2,5], { normalRangeMin: 2,
+            normalRangeMax: 7, normalRangeColor: '#ccc', fillColor: '#e8f4fd',
+            width: '80px', height: '30px' });
+          </div>
+        </div>
+      </div>
+
+      <h2>Bar Charts</h2>
+      <div class="chart-section">
+        <div class="description">
+          Bar charts display data as vertical bars. They support
+          positive/negative values, stacking, and custom colors.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Basic Bar Chart</div>
+          <div class="chart-container">
+            <span id="bar1">3,6,2,8,4,7,1,9</span>
+          </div>
+          <div class="code-example">
+            sparklines('#bar1', [3,6,2,8,4,7,1,9], { type: 'bar', barColor:
+            '#3366cc', barWidth: 6, barSpacing: 2, width: '80px', height: '30px'
+            });
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Bar Chart with Negative Values</div>
+          <div class="chart-container">
+            <span id="bar2">5,-2,3,-1,4,-3,2,-4</span>
+          </div>
+          <div class="code-example">
+            sparklines('#bar2', [5,-2,3,-1,4,-3,2,-4], { type: 'bar', barColor:
+            '#3366cc', negBarColor: '#f44', zeroAxis: true, width: '80px',
+            height: '30px' });
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Stacked Bar Chart</div>
+          <div class="chart-container">
+            <span id="bar3">2:3:1,1:2:2,3:1:1,2:2:3</span>
+          </div>
+          <div class="code-example">
+            sparklines('#bar3', ['2:3:1','1:2:2','3:1:1','2:2:3'], { type:
+            'bar', stackedBarColor: ['#3366cc', '#dc3912', '#ff9900'], width:
+            '80px', height: '30px' });
+          </div>
+        </div>
+      </div>
+
+      <h2>Tristate Charts</h2>
+      <div class="chart-section">
+        <div class="description">
+          Tristate charts display win/loss/draw data with different colors for
+          positive, negative, and zero values.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Tristate Chart (Win/Loss/Draw)</div>
+          <div class="chart-container">
+            <span id="tristate1">1,1,-1,1,0,0,-1,1,-1,0</span>
+          </div>
+          <div class="code-example">
+            sparklines('#tristate1', [1,1,-1,1,0,0,-1,1,-1,0], { type:
+            'tristate', posBarColor: '#6f6', negBarColor: '#f44', zeroBarColor:
+            '#999', width: '80px', height: '30px' });
+          </div>
+        </div>
+      </div>
+
+      <h2>Discrete Charts</h2>
+      <div class="chart-section">
+        <div class="description">
+          Discrete charts display data as vertical lines of varying heights,
+          useful for showing discrete values.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Discrete Chart</div>
+          <div class="chart-container">
+            <span id="discrete1">1,3,4,5,5,3,4,5,2,6</span>
+          </div>
+          <div class="code-example">
+            sparklines('#discrete1', [1,3,4,5,5,3,4,5,2,6], { type: 'discrete',
+            lineColor: '#00f', thresholdColor: '#f44', thresholdValue: 3, width:
+            '80px', height: '30px' });
+          </div>
+        </div>
+      </div>
+
+      <h2>Bullet Charts</h2>
+      <div class="chart-section">
+        <div class="description">
+          Bullet charts display performance against targets with qualitative
+          ranges. Data format: [target, performance, range1, range2, range3].
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Bullet Chart</div>
+          <div class="chart-container">
+            <span id="bullet1">10,12,12,9,7</span>
+          </div>
+          <div class="code-example">
+            sparklines('#bullet1', [10,12,12,9,7], { type: 'bullet',
+            targetColor: '#f33', performanceColor: '#33f', rangeColors:
+            ['#d3dafe', '#a8b6ff', '#7f94ff'], width: '80px', height: '30px' });
+          </div>
+        </div>
+      </div>
+
+      <h2>Pie Charts</h2>
+      <div class="chart-section">
+        <div class="description">
+          Pie charts display data as slices of a circle, showing proportions of
+          a whole.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Pie Chart</div>
+          <div class="chart-container">
+            <span id="pie1">3,2,4,1</span>
+          </div>
+          <div class="code-example">
+            sparklines('#pie1', [3,2,4,1], { type: 'pie', sliceColors:
+            ['#3366cc', '#dc3912', '#ff9900', '#109618'], borderWidth: 2,
+            borderColor: '#000', width: '30px', height: '30px' });
+          </div>
+        </div>
+      </div>
+
+      <h2>Box Charts</h2>
+      <div class="chart-section">
+        <div class="description">
+          Box charts display statistical data showing quartiles, median,
+          outliers, and whiskers.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Box Chart</div>
+          <div class="chart-container">
+            <span id="box1"
+              >1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20</span
+            >
+          </div>
+          <div class="code-example">
+            sparklines('#box1',
+            [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20], { type: 'box',
+            boxLineColor: '#000', boxFillColor: '#cdf', whiskerColor: '#000',
+            outlierLineColor: '#333', outlierFillColor: '#fff', medianColor:
+            '#f00', width: '80px', height: '30px' });
+          </div>
+        </div>
+      </div>
+
+      <h2>Interactive Features</h2>
+      <div class="chart-section">
+        <div class="description">
+          All charts support interactive features like tooltips, hover
+          highlighting, and click events.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">
+            Interactive Line Chart with Custom Tooltip
+          </div>
+          <div class="chart-container">
+            <span id="interactive1">5,8,3,9,2,7,4,6,8,1</span>
+          </div>
+          <div class="code-example">
+            sparklines('#interactive1', [5,8,3,9,2,7,4,6,8,1], {
+            tooltipChartTitle: 'Sales Data', tooltipPrefix: 'Value: ',
+            tooltipSuffix: ' units', spotColor: '#f80', spotRadius: 3,
+            highlightSpotColor: '#5f5', highlightLineColor: '#f22', width:
+            '80px', height: '30px' }); // Add click event listener
+            document.getElementById('interactive1').addEventListener('sparklineClick',
+            function(e) { console.log('Chart clicked!', e.sparklines); });
+          </div>
+        </div>
+      </div>
+
+      <h2>Data Sources</h2>
+      <div class="chart-section">
+        <div class="description">
+          Sparklines can read data from various sources: arrays, HTML content,
+          attributes, and comments.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Data from HTML Content</div>
+          <div class="chart-container">
+            <span class="sparkline">4,6,2,8,5,3,7,1</span>
+          </div>
+          <div class="code-example">
+            sparklines('.sparkline', null, { width: '80px', height: '30px' });
+            // Reads data from HTML content
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Data from HTML Comment</div>
+          <div class="chart-container">
+            <span class="sparkline-comment"><!--2,5,8,3,6,9,1,4--></span>
+          </div>
+          <div class="code-example">
+            &lt;span
+            class="sparkline-comment"&gt;&lt;!--2,5,8,3,6,9,1,4--&gt;&lt;/span&gt;
+            sparklines('.sparkline-comment', null, { width: '80px', height:
+            '30px' });
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Data from Attribute</div>
+          <div class="chart-container">
+            <span class="sparkline-attr" values="7,3,9,2,5,8,1,6"></span>
+          </div>
+          <div class="code-example">
+            &lt;span class="sparkline-attr"
+            values="7,3,9,2,5,8,1,6"&gt;&lt;/span&gt;
+            sparklines('.sparkline-attr', null, { width: '80px', height: '30px'
+            });
+          </div>
+        </div>
+      </div>
+
+      <h2>Usage Examples</h2>
+      <div class="chart-section">
+        <div class="code-example">
+          // Basic usage sparklines('#element', [1,2,3,4,5], { width: '80px',
+          height: '30px' }); // With options sparklines('#element', [1,2,3,4,5],
+          { type: 'bar', barColor: '#3366cc', height: '30px', width: '80px' });
+          // Multiple elements sparklines('.sparkline', [1,2,3,4,5], { width:
+          '80px', height: '30px' }); // Read from HTML content
+          sparklines('.sparkline', null, { width: '80px', height: '30px' }); //
+          Reads data from element content // Enable tag options
+          sparklines('.sparkline', [1,2,3,4,5], {enableTagOptions: true, width:
+          '80px', height: '30px'}); // Then use: &lt;span class="sparkline"
+          sparkType="bar" sparkBarColor="red"&gt;1,2,3,4,5&lt;/span&gt;
+        </div>
+      </div>
+
+      <footer
+        style="
+          text-align: center;
+          margin-top: 50px;
+          padding: 20px;
+          border-top: 1px solid #eee;
+          color: #666;
+          font-size: 14px;
+        "
+      >
+        Made by
+        <a
+          href="https://maxico.dev"
+          style="color: #007bff; text-decoration: none"
+          >maxico.dev</a
+        >
+        © 2025
+      </footer>
+    </div>
+
+    <script src="sparklines.js"></script>
+    <script>
+      // Initialize all charts when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        // Line charts
+        sparklines("#line1", [1, 4, 6, 6, 8, 5, 3, 5], {
+          width: "80px",
+          height: "30px",
+        });
+
+        sparklines("#line2", [2, 4, 3, 1, 5, 4, 6, 8], {
+          fillColor: "#cdf",
+          lineColor: "#00f",
+          spotColor: "#f80",
+          spotRadius: 3,
+          lineWidth: 2,
+          width: "80px",
+          height: "30px",
+        });
+
+        sparklines("#line3", [3, 7, 2, 9, 1, 4, 6, 8, 2, 5], {
+          normalRangeMin: 2,
+          normalRangeMax: 7,
+          normalRangeColor: "#ccc",
+          fillColor: "#e8f4fd",
+          width: "80px",
+          height: "30px",
+        });
+
+        // Bar charts
+        sparklines("#bar1", [3, 6, 2, 8, 4, 7, 1, 9], {
+          type: "bar",
+          barColor: "#3366cc",
+          barWidth: 6,
+          barSpacing: 2,
+          width: "80px",
+          height: "30px",
+        });
+
+        sparklines("#bar2", [5, -2, 3, -1, 4, -3, 2, -4], {
+          type: "bar",
+          barColor: "#3366cc",
+          negBarColor: "#f44",
+          zeroAxis: true,
+          width: "80px",
+          height: "30px",
+        });
+
+        sparklines("#bar3", ["2:3:1", "1:2:2", "3:1:1", "2:2:3"], {
+          type: "bar",
+          stackedBarColor: ["#3366cc", "#dc3912", "#ff9900"],
+          width: "80px",
+          height: "30px",
+        });
+
+        // Tristate chart
+        sparklines("#tristate1", [1, 1, -1, 1, 0, 0, -1, 1, -1, 0], {
+          type: "tristate",
+          posBarColor: "#6f6",
+          negBarColor: "#f44",
+          zeroBarColor: "#999",
+          width: "80px",
+          height: "30px",
+        });
+
+        // Discrete chart
+        sparklines("#discrete1", [1, 3, 4, 5, 5, 3, 4, 5, 2, 6], {
+          type: "discrete",
+          lineColor: "#00f",
+          thresholdColor: "#f44",
+          thresholdValue: 3,
+          width: "80px",
+          height: "30px",
+        });
+
+        // Bullet chart
+        sparklines("#bullet1", [10, 12, 12, 9, 7], {
+          type: "bullet",
+          targetColor: "#f33",
+          performanceColor: "#33f",
+          rangeColors: ["#d3dafe", "#a8b6ff", "#7f94ff"],
+          width: "80px",
+          height: "30px",
+        });
+
+        // Pie chart
+        sparklines("#pie1", [3, 2, 4, 1], {
+          type: "pie",
+          sliceColors: ["#3366cc", "#dc3912", "#ff9900", "#109618"],
+          borderWidth: 2,
+          borderColor: "#000",
+          width: "30px",
+          height: "30px",
+        });
+
+        // Box chart
+        sparklines(
+          "#box1",
+          [
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+            20,
+          ],
+          {
+            type: "box",
+            boxLineColor: "#000",
+            boxFillColor: "#cdf",
+            whiskerColor: "#000",
+            outlierLineColor: "#333",
+            outlierFillColor: "#fff",
+            medianColor: "#f00",
+            width: "80px",
+            height: "30px",
+          }
+        );
+
+        // Interactive chart
+        sparklines("#interactive1", [5, 8, 3, 9, 2, 7, 4, 6, 8, 1], {
+          tooltipChartTitle: "Sales Data",
+          tooltipPrefix: "Value: ",
+          tooltipSuffix: " units",
+          spotColor: "#f80",
+          spotRadius: 3,
+          highlightSpotColor: "#5f5",
+          highlightLineColor: "#f22",
+          width: "80px",
+          height: "30px",
+        });
+
+        // Add click event listener
+        document
+          .getElementById("interactive1")
+          .addEventListener("sparklineClick", function (e) {
+            alert("Chart clicked! Check console for details.");
+            console.log("Chart clicked!", e.sparklines);
+          });
+
+        // Charts from HTML content
+        sparklines(".sparkline", null, { width: "80px", height: "30px" });
+        sparklines(".sparkline-comment", null, {
+          width: "80px",
+          height: "30px",
+        });
+        sparklines(".sparkline-attr", null, { width: "80px", height: "30px" });
+
+        // Interactive Demo functionality
+        initializeInteractiveDemo();
+      });
+
+      function initializeInteractiveDemo() {
+        // Initialize demo charts
+        updateDemoCharts();
+
+        // Set up event listeners
+        document
+          .getElementById("update-chart")
+          .addEventListener("click", updateDemoCharts);
+        document
+          .getElementById("reset-chart")
+          .addEventListener("click", resetDemoControls);
+
+        // Auto-update on input changes
+        const inputs = [
+          "chart-type",
+          "data-input",
+          "width",
+          "height",
+          "line-color",
+          "fill-color",
+          "bar-color",
+          "show-spots",
+          "show-fill",
+        ];
+        inputs.forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.addEventListener("change", updateDemoCharts);
+            element.addEventListener("input", updateDemoCharts);
+          }
+        });
+      }
+
+      function updateDemoCharts() {
+        const chartType = document.getElementById("chart-type").value;
+        const dataInput = document.getElementById("data-input").value;
+        const width = document.getElementById("width").value;
+        const height = document.getElementById("height").value;
+        const lineColor = document.getElementById("line-color").value;
+        const fillColor = document.getElementById("fill-color").value;
+        const barColor = document.getElementById("bar-color").value;
+        const showSpots = document.getElementById("show-spots").checked;
+        const showFill = document.getElementById("show-fill").checked;
+
+        // Parse data
+        let data;
+        try {
+          data = dataInput.split(",").map((x) => {
+            const val = parseFloat(x.trim());
+            return isNaN(val) ? 0 : val;
+          });
+        } catch (e) {
+          data = [1, 2, 3, 4, 5];
+        }
+
+        // Build options object
+        const options = {
+          width: width,
+          height: height,
+        };
+
+        // Add type-specific options
+        if (chartType !== "line") {
+          options.type = chartType;
+        }
+
+        // Add color options based on chart type
+        if (chartType === "line") {
+          options.lineColor = lineColor;
+          if (showFill) {
+            options.fillColor = fillColor;
+          }
+          if (showSpots) {
+            options.spotColor = lineColor;
+            options.spotRadius = 3;
+          }
+        } else if (chartType === "bar") {
+          options.barColor = barColor;
+        } else if (chartType === "pie") {
+          options.sliceColors = [lineColor, barColor, fillColor, "#109618"];
+        } else if (chartType === "tristate") {
+          options.posBarColor = "#6f6";
+          options.negBarColor = "#f44";
+          options.zeroBarColor = "#999";
+        }
+
+        // Update the interactive demo chart
+        const element = document.getElementById("demo-interactive");
+        if (element) {
+          // Clear existing sparkline
+          element.innerHTML = dataInput;
+          // Create new sparkline
+          sparklines("#demo-interactive", data, options);
+        }
+
+        // Update generated code
+        updateGeneratedCode(data, options);
+      }
+
+      function updateGeneratedCode(data, options) {
+        const codeElement = document.getElementById("generated-code");
+        let code = "sparklines('#element', " + JSON.stringify(data) + ", ";
+
+        // Format options nicely
+        const formattedOptions = JSON.stringify(options, null, 2)
+          .replace(/"/g, "'")
+          .replace(/,\n/g, ",\n  ");
+
+        code += formattedOptions + ");";
+        codeElement.textContent = code;
+      }
+
+      function resetDemoControls() {
+        document.getElementById("chart-type").value = "line";
+        document.getElementById("data-input").value = "1,4,6,6,8,5,3,5";
+        document.getElementById("width").value = "80px";
+        document.getElementById("height").value = "30px";
+        document.getElementById("line-color").value = "#3366cc";
+        document.getElementById("fill-color").value = "#cdf";
+        document.getElementById("bar-color").value = "#3366cc";
+        document.getElementById("show-spots").checked = false;
+        document.getElementById("show-fill").checked = false;
+
+        updateDemoCharts();
+      }
+    </script>
+  </body>
+</html>
