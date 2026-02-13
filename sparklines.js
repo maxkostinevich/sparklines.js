@@ -1126,6 +1126,11 @@
       }
     },
 
+    destroy: function () {
+      document.body.removeEventListener("mousemove", this.mousemoveHandler);
+      this.reset(true);
+    },
+
     mouseclick: function (e) {
       var clickEvent = utils.Event("sparklineClick");
       clickEvent.originalEvent = e;
@@ -3779,6 +3784,299 @@
       );
     },
   });
+
+  // --- Web Components ---
+  function kebabToCamel(str) {
+    return str.replace(/-([a-z])/g, function (_, c) {
+      return c.toUpperCase();
+    });
+  }
+
+  function parseAttributeValue(key, val) {
+    if (val === undefined || val === null || val === "") {
+      return undefined;
+    }
+    var s = String(val).trim();
+    if (s.charAt(0) === "[" && s.charAt(s.length - 1) === "]") {
+      return s
+        .slice(1, -1)
+        .split(",")
+        .map(function (v) {
+          return normalizeValue(v.trim());
+        });
+    }
+    if (key === "values" || s.indexOf(",") > -1) {
+      return s.split(",").map(function (v) {
+        var t = v.trim();
+        var n = normalizeValue(t);
+        return n !== t && (typeof n === "number" || typeof n === "boolean") ? n : t;
+      });
+    }
+    return normalizeValue(s);
+  }
+
+  var SparklineElement = (function () {
+    function SparklineElement() {
+      var self = HTMLElement !== undefined ? HTMLElement.call(this) : this;
+      self._valuesProperty = undefined;
+      self._optionsProperty = undefined;
+      self._renderScheduled = false;
+      return self;
+    }
+
+    if (typeof HTMLElement !== "undefined") {
+      SparklineElement.prototype = Object.create(HTMLElement.prototype);
+      SparklineElement.prototype.constructor = SparklineElement;
+    }
+
+    SparklineElement.prototype.connectedCallback = function () {
+      this.scheduleRender();
+    };
+
+    SparklineElement.prototype.disconnectedCallback = function () {
+      var mhandler = utils.data(this, "_jqs_mhandler");
+      if (mhandler && typeof mhandler.destroy === "function") {
+        mhandler.destroy();
+      }
+      cleardraw(this);
+      this.innerHTML = "";
+      var data = utils.data(this);
+      if (data && typeof data === "object") {
+        Object.keys(data).forEach(function (k) {
+          data[k] = undefined;
+        });
+      }
+    };
+
+    SparklineElement.prototype.attributeChangedCallback = function (
+      name,
+      oldVal,
+      newVal
+    ) {
+      if (oldVal !== newVal) {
+        this.scheduleRender();
+      }
+    };
+
+    SparklineElement.prototype.scheduleRender = function () {
+      var self = this;
+      if (this._renderScheduled) {
+        return;
+      }
+      this._renderScheduled = true;
+      requestAnimationFrame(function () {
+        self._renderScheduled = false;
+        if (self.isConnected) {
+          self._render();
+        }
+      });
+    };
+
+    SparklineElement.prototype._render = function () {
+      var values = this.values;
+      var options = this.getOptionsFromAttributes();
+      if (values && values.length) {
+        sparklines(this, values, options);
+      }
+    };
+
+    SparklineElement.prototype.getOptionsFromAttributes = function () {
+      var self = this;
+      var opts = self._optionsProperty ? utils.extend({}, self._optionsProperty) : {};
+      var observed = this.constructor.observedAttributes;
+      if (!observed) {
+        return opts;
+      }
+      for (var i = 0; i < observed.length; i++) {
+        var key = observed[i];
+        if (key === "values") {
+          continue;
+        }
+        var val = self.getAttribute(key);
+        if (val !== null && val !== undefined) {
+          var camelKey = kebabToCamel(key);
+          opts[camelKey] = parseAttributeValue(key, val);
+        }
+      }
+      opts.type = this.constructor.chartType || "line";
+      return opts;
+    };
+
+    Object.defineProperty(SparklineElement.prototype, "values", {
+      get: function () {
+        var attr = this.getAttribute("values");
+        if (attr !== null && attr !== undefined && attr !== "") {
+          var parsed = parseAttributeValue("values", attr);
+          return utils.isArray(parsed) ? parsed : [parsed];
+        }
+        return this._valuesProperty !== undefined
+          ? this._valuesProperty
+          : [];
+      },
+      set: function (v) {
+        if (utils.isArray(v)) {
+          this._valuesProperty = v;
+        } else if (typeof v === "string") {
+          this._valuesProperty = v.split(",").map(function (x) {
+            return normalizeValue(x.trim());
+          });
+        } else {
+          this._valuesProperty = [];
+        }
+        this.scheduleRender();
+      },
+      configurable: true,
+      enumerable: true,
+    });
+
+    Object.defineProperty(SparklineElement.prototype, "options", {
+      get: function () {
+        return this._optionsProperty;
+      },
+      set: function (v) {
+        this._optionsProperty = v && typeof v === "object" ? v : undefined;
+        this.scheduleRender();
+      },
+      configurable: true,
+      enumerable: true,
+    });
+
+    return SparklineElement;
+  })();
+
+  var commonAttrs = [
+    "values",
+    "width",
+    "height",
+    "line-color",
+    "fill-color",
+    "default-pixels-per-value",
+    "enable-highlight",
+    "tooltip-prefix",
+    "tooltip-suffix",
+    "disable-tooltips",
+    "disable-interaction",
+  ];
+
+  var lineAttrs = commonAttrs.concat([
+    "spot-color",
+    "highlight-spot-color",
+    "highlight-line-color",
+    "spot-radius",
+    "min-spot-color",
+    "max-spot-color",
+    "line-width",
+    "normal-range-min",
+    "normal-range-max",
+    "normal-range-color",
+    "draw-normal-on-top",
+    "chart-range-min",
+    "chart-range-max",
+    "chart-range-min-x",
+    "chart-range-max-x",
+  ]);
+
+  var barAttrs = commonAttrs.concat([
+    "bar-color",
+    "neg-bar-color",
+    "zero-color",
+    "null-color",
+    "zero-axis",
+    "bar-width",
+    "bar-spacing",
+    "chart-range-max",
+    "chart-range-min",
+    "chart-range-clip",
+  ]);
+
+  var tristateAttrs = commonAttrs.concat([
+    "bar-width",
+    "bar-spacing",
+    "pos-bar-color",
+    "neg-bar-color",
+    "zero-bar-color",
+  ]);
+
+  var discreteAttrs = commonAttrs.concat([
+    "line-height",
+    "threshold-color",
+    "threshold-value",
+    "chart-range-max",
+    "chart-range-min",
+    "chart-range-clip",
+  ]);
+
+  var bulletAttrs = commonAttrs.concat([
+    "target-color",
+    "target-width",
+    "performance-color",
+    "range-colors",
+    "base",
+  ]);
+
+  var pieAttrs = commonAttrs.concat([
+    "offset",
+    "slice-colors",
+    "border-width",
+    "border-color",
+  ]);
+
+  var boxAttrs = commonAttrs.concat([
+    "raw",
+    "box-line-color",
+    "box-fill-color",
+    "whisker-color",
+    "outlier-line-color",
+    "outlier-fill-color",
+    "median-color",
+    "show-outliers",
+    "outlier-iqr",
+    "spot-radius",
+    "target",
+    "target-color",
+    "chart-range-max",
+    "chart-range-min",
+  ]);
+
+  function createSparklineClass(chartType, observedAttrs) {
+    function C() {
+      return SparklineElement.apply(this, arguments) || this;
+    }
+    C.prototype = Object.create(SparklineElement.prototype);
+    C.prototype.constructor = C;
+    C.chartType = chartType;
+    C.observedAttributes = observedAttrs;
+    return C;
+  }
+
+  var SparkLineElement = createSparklineClass("line", lineAttrs);
+  var SparkBarElement = createSparklineClass("bar", barAttrs);
+  var SparkTristateElement = createSparklineClass("tristate", tristateAttrs);
+  var SparkDiscreteElement = createSparklineClass("discrete", discreteAttrs);
+  var SparkBulletElement = createSparklineClass("bullet", bulletAttrs);
+  var SparkPieElement = createSparklineClass("pie", pieAttrs);
+  var SparkBoxElement = createSparklineClass("box", boxAttrs);
+
+  if (typeof window !== "undefined" && window.customElements) {
+    customElements.define("spark-line", SparkLineElement);
+    customElements.define("spark-bar", SparkBarElement);
+    customElements.define("spark-tristate", SparkTristateElement);
+    customElements.define("spark-discrete", SparkDiscreteElement);
+    customElements.define("spark-bullet", SparkBulletElement);
+    customElements.define("spark-pie", SparkPieElement);
+    customElements.define("spark-box", SparkBoxElement);
+  }
+
+  sparklines.SparklineElement = SparklineElement;
+  sparklines.elements = {
+    line: SparkLineElement,
+    bar: SparkBarElement,
+    tristate: SparkTristateElement,
+    discrete: SparkDiscreteElement,
+    bullet: SparkBulletElement,
+    pie: SparkPieElement,
+    box: SparkBoxElement,
+  };
 
   // Export sparklines function
   window.sparklines = sparklines;

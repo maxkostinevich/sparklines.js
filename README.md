@@ -17,6 +17,7 @@ A lightweight, pure vanilla JavaScript library for creating beautiful sparkline 
 - ✅ **Customizable styling** - colors, sizes, formatting
 - ✅ **Range maps** and value lookups
 - ✅ **Custom events** - sparklineClick, sparklineRegionChange
+- ✅ **Web Components** - declarative custom elements for all chart types (`<spark-line>`, `<spark-bar>`, etc.)
 - ✅ **Performance optimized** - handles large datasets efficiently
 
 ## Installation
@@ -47,6 +48,51 @@ sparklines(".sparkline", [1, 2, 3, 4, 5], { width: "80px", height: "30px" });
 // Read data from HTML content
 sparklines(".sparkline", null, { width: "80px", height: "30px" });
 ```
+
+## Web Components
+
+All chart types are available as custom elements. Include the same script and use declarative HTML. Options are set via kebab-case attributes.
+
+| Chart Type | Custom Element     |
+| ---------- | ------------------ |
+| Line       | `<spark-line>`     |
+| Bar        | `<spark-bar>`      |
+| Tristate   | `<spark-tristate>` |
+| Discrete   | `<spark-discrete>` |
+| Bullet     | `<spark-bullet>`   |
+| Pie        | `<spark-pie>`      |
+| Box        | `<spark-box>`      |
+
+**Declarative usage:**
+
+```html
+<!-- Line chart -->
+<spark-line values="1,4,6,6,8,5,3,5" width="80" height="30" line-color="#00f"></spark-line>
+
+<!-- Bar chart -->
+<spark-bar values="3,5,2,8,1" width="80" height="30" bar-color="#3366cc" bar-width="6" bar-spacing="2"></spark-bar>
+
+<!-- Pie chart -->
+<spark-pie values="30,20,50" width="60" height="60" slice-colors="#f00,#0f0,#00f" border-width="1"></spark-pie>
+```
+
+**Programmatic usage:**
+
+```html
+<spark-line id="mychart" width="160" height="40"></spark-line>
+<script>
+  var el = document.getElementById("mychart");
+  el.values = [1, 4, 6, 6, 8, 5, 3, 5];
+  el.options = { spotRadius: 3, lineWidth: 2 };
+</script>
+```
+
+- **`values`** – Comma-separated numbers or set via the `values` property (array or string).
+- **`options`** – Set via the `options` property for complex options; attributes override for simple options.
+- Attribute names use **kebab-case** and map to option keys (e.g. `line-color` → `lineColor`, `spot-radius` → `spotRadius`).
+- Re-renders when attributes or the `values`/`options` properties change.
+
+Programmatic access to the element classes: `sparklines.SparklineElement`, `sparklines.elements.line`, `sparklines.elements.bar`, etc.
 
 ## Chart Types
 

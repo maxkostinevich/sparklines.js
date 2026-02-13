@@ -249,6 +249,18 @@
         height: 30px;
       }
 
+      /* Web component custom elements */
+      spark-line,
+      spark-bar,
+      spark-tristate,
+      spark-discrete,
+      spark-bullet,
+      spark-pie,
+      spark-box {
+        display: inline-block;
+        vertical-align: middle;
+      }
+
       @media (max-width: 768px) {
         .interactive-demo {
           flex-direction: column;
@@ -398,6 +410,101 @@ sparklines('#demo-chart', [1,4,6,6,8,5,3,5], { width: '80px', height: '30px' });
             <div class="demo-chart-container">
               <span id="demo-interactive">1,4,6,6,8,5,3,5</span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Web Components</h2>
+      <div class="chart-section">
+        <div class="description">
+          You can use declarative custom elements for all chart types. Set
+          <code>values</code> as a comma-separated list and options as
+          kebab-case attributes. Works with the same script include.
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Line, Bar, Tristate (declarative)</div>
+          <div class="chart-container">
+            <spark-line
+              values="1,4,6,6,8,5,3,5"
+              width="80"
+              height="30"
+              line-color="#00f"
+            ></spark-line>
+            <spark-bar
+              values="3,5,2,8,1"
+              width="80"
+              height="30"
+              bar-color="#3366cc"
+              bar-width="6"
+              bar-spacing="2"
+            ></spark-bar>
+            <spark-tristate
+              values="1,-1,0,1,0,-1,1"
+              width="80"
+              height="30"
+              pos-bar-color="#6f6"
+              neg-bar-color="#f44"
+              zero-bar-color="#999"
+            ></spark-tristate>
+          </div>
+          <div class="code-example">
+&lt;spark-line values="1,4,6,6,8,5,3,5" width="80" height="30" line-color="#00f"&gt;&lt;/spark-line&gt;
+&lt;spark-bar values="3,5,2,8,1" width="80" height="30" bar-color="#3366cc" bar-width="6" bar-spacing="2"&gt;&lt;/spark-bar&gt;
+&lt;spark-tristate values="1,-1,0,1,0,-1,1" width="80" height="30"&gt;&lt;/spark-tristate&gt;
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Discrete, Bullet, Pie, Box</div>
+          <div class="chart-container">
+            <spark-discrete
+              values="1,2,1,2,3,2,1"
+              width="80"
+              height="30"
+              line-height="auto"
+            ></spark-discrete>
+            <spark-bullet
+              values="150,120,50,100,150"
+              width="120"
+              height="30"
+              target-color="#f33"
+              performance-color="#33f"
+              range-colors="#d3dafe,#a8b6ff,#7f94ff"
+            ></spark-bullet>
+            <spark-pie
+              values="30,20,50"
+              width="60"
+              height="60"
+              slice-colors="#3366cc,#dc3912,#ff9900"
+              border-width="1"
+            ></spark-pie>
+            <spark-box
+              values="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20"
+              width="80"
+              height="30"
+              box-line-color="#000"
+              box-fill-color="#cdf"
+              median-color="#f00"
+            ></spark-box>
+          </div>
+          <div class="code-example">
+&lt;spark-discrete values="1,2,1,2,3,2,1" width="80" height="30"&gt;&lt;/spark-discrete&gt;
+&lt;spark-bullet values="150,120,50,100,150" width="120" height="30" range-colors="#d3dafe,#a8b6ff,#7f94ff"&gt;&lt;/spark-bullet&gt;
+&lt;spark-pie values="30,20,50" width="60" height="60" slice-colors="#3366cc,#dc3912,#ff9900"&gt;&lt;/spark-pie&gt;
+&lt;spark-box values="1,2,...,20" width="80" height="30"&gt;&lt;/spark-box&gt;
+          </div>
+        </div>
+
+        <div class="chart-example">
+          <div class="chart-title">Programmatic update</div>
+          <div class="chart-container">
+            <spark-line id="wc-live" width="160" height="40"></spark-line>
+          </div>
+          <div class="code-example">
+var el = document.getElementById('wc-live');
+el.values = [1, 4, 6, 6, 8, 5, 3, 5];
+el.options = { spotRadius: 3, lineWidth: 2 };
           </div>
         </div>
       </div>
@@ -704,6 +811,13 @@ sparklines('#demo-chart', [1,4,6,6,8,5,3,5], { width: '80px', height: '30px' });
     <script>
       // Initialize all charts when page loads
       document.addEventListener("DOMContentLoaded", function () {
+        // Web component programmatic example
+        var wcLive = document.getElementById("wc-live");
+        if (wcLive) {
+          wcLive.values = [1, 4, 6, 6, 8, 5, 3, 5];
+          wcLive.options = { spotRadius: 3, lineWidth: 2 };
+        }
+
         // Line charts
         sparklines("#line1", [1, 4, 6, 6, 8, 5, 3, 5], {
           width: "80px",
