@@ -3815,134 +3815,136 @@
     return normalizeValue(s);
   }
 
-  var SparklineElement = (function () {
-    function SparklineElement() {
-      var self = HTMLElement !== undefined ? HTMLElement.call(this) : this;
-      self._valuesProperty = undefined;
-      self._optionsProperty = undefined;
-      self._renderScheduled = false;
-      return self;
-    }
+  var SparklineElement =
+    typeof HTMLElement !== "undefined"
+      ? (function () {
+          class SparklineElement extends HTMLElement {
+            constructor() {
+              super();
+              this._valuesProperty = undefined;
+              this._optionsProperty = undefined;
+              this._renderScheduled = false;
+            }
 
-    if (typeof HTMLElement !== "undefined") {
-      SparklineElement.prototype = Object.create(HTMLElement.prototype);
-      SparklineElement.prototype.constructor = SparklineElement;
-    }
+            connectedCallback() {
+              if (this.values && this.values.length) {
+                this._render();
+              } else {
+                this.scheduleRender();
+              }
+            }
 
-    SparklineElement.prototype.connectedCallback = function () {
-      this.scheduleRender();
-    };
+            disconnectedCallback() {
+              var mhandler = utils.data(this, "_jqs_mhandler");
+              if (mhandler && typeof mhandler.destroy === "function") {
+                mhandler.destroy();
+              }
+              cleardraw(this);
+              this.innerHTML = "";
+              var data = utils.data(this);
+              if (data && typeof data === "object") {
+                Object.keys(data).forEach(function (k) {
+                  data[k] = undefined;
+                });
+              }
+            }
 
-    SparklineElement.prototype.disconnectedCallback = function () {
-      var mhandler = utils.data(this, "_jqs_mhandler");
-      if (mhandler && typeof mhandler.destroy === "function") {
-        mhandler.destroy();
-      }
-      cleardraw(this);
-      this.innerHTML = "";
-      var data = utils.data(this);
-      if (data && typeof data === "object") {
-        Object.keys(data).forEach(function (k) {
-          data[k] = undefined;
-        });
-      }
-    };
+            attributeChangedCallback(name, oldVal, newVal) {
+              if (oldVal !== newVal) {
+                this.scheduleRender();
+              }
+            }
 
-    SparklineElement.prototype.attributeChangedCallback = function (
-      name,
-      oldVal,
-      newVal
-    ) {
-      if (oldVal !== newVal) {
-        this.scheduleRender();
-      }
-    };
+            scheduleRender() {
+              var self = this;
+              if (this._renderScheduled) {
+                return;
+              }
+              this._renderScheduled = true;
+              requestAnimationFrame(function () {
+                self._renderScheduled = false;
+                if (self.isConnected) {
+                  self._render();
+                }
+              });
+            }
 
-    SparklineElement.prototype.scheduleRender = function () {
-      var self = this;
-      if (this._renderScheduled) {
-        return;
-      }
-      this._renderScheduled = true;
-      requestAnimationFrame(function () {
-        self._renderScheduled = false;
-        if (self.isConnected) {
-          self._render();
-        }
-      });
-    };
+            _render() {
+              var values = this.values;
+              var options = this.getOptionsFromAttributes();
+              if (values && values.length) {
+                sparklines(this, values, options);
+              }
+            }
 
-    SparklineElement.prototype._render = function () {
-      var values = this.values;
-      var options = this.getOptionsFromAttributes();
-      if (values && values.length) {
-        sparklines(this, values, options);
-      }
-    };
+            getOptionsFromAttributes() {
+              var self = this;
+              var opts = self._optionsProperty
+                ? utils.extend({}, self._optionsProperty)
+                : {};
+              var observed = this.constructor.observedAttributes;
+              if (!observed) {
+                return opts;
+              }
+              for (var i = 0; i < observed.length; i++) {
+                var key = observed[i];
+                if (key === "values") {
+                  continue;
+                }
+                var val = self.getAttribute(key);
+                if (val !== null && val !== undefined) {
+                  var camelKey = kebabToCamel(key);
+                  opts[camelKey] = parseAttributeValue(key, val);
+                }
+              }
+              opts.type = this.constructor.chartType || "line";
+              if (typeof opts.width === "number") {
+                opts.width = opts.width + "px";
+              }
+              if (typeof opts.height === "number") {
+                opts.height = opts.height + "px";
+              }
+              opts.disableHiddenCheck = true;
+              return opts;
+            }
 
-    SparklineElement.prototype.getOptionsFromAttributes = function () {
-      var self = this;
-      var opts = self._optionsProperty ? utils.extend({}, self._optionsProperty) : {};
-      var observed = this.constructor.observedAttributes;
-      if (!observed) {
-        return opts;
-      }
-      for (var i = 0; i < observed.length; i++) {
-        var key = observed[i];
-        if (key === "values") {
-          continue;
-        }
-        var val = self.getAttribute(key);
-        if (val !== null && val !== undefined) {
-          var camelKey = kebabToCamel(key);
-          opts[camelKey] = parseAttributeValue(key, val);
-        }
-      }
-      opts.type = this.constructor.chartType || "line";
-      return opts;
-    };
+            get values() {
+              var attr = this.getAttribute("values");
+              if (attr !== null && attr !== undefined && attr !== "") {
+                var parsed = parseAttributeValue("values", attr);
+                return utils.isArray(parsed) ? parsed : [parsed];
+              }
+              return this._valuesProperty !== undefined
+                ? this._valuesProperty
+                : [];
+            }
 
-    Object.defineProperty(SparklineElement.prototype, "values", {
-      get: function () {
-        var attr = this.getAttribute("values");
-        if (attr !== null && attr !== undefined && attr !== "") {
-          var parsed = parseAttributeValue("values", attr);
-          return utils.isArray(parsed) ? parsed : [parsed];
-        }
-        return this._valuesProperty !== undefined
-          ? this._valuesProperty
-          : [];
-      },
-      set: function (v) {
-        if (utils.isArray(v)) {
-          this._valuesProperty = v;
-        } else if (typeof v === "string") {
-          this._valuesProperty = v.split(",").map(function (x) {
-            return normalizeValue(x.trim());
-          });
-        } else {
-          this._valuesProperty = [];
-        }
-        this.scheduleRender();
-      },
-      configurable: true,
-      enumerable: true,
-    });
+            set values(v) {
+              if (utils.isArray(v)) {
+                this._valuesProperty = v;
+              } else if (typeof v === "string") {
+                this._valuesProperty = v.split(",").map(function (x) {
+                  return normalizeValue(x.trim());
+                });
+              } else {
+                this._valuesProperty = [];
+              }
+              this.scheduleRender();
+            }
 
-    Object.defineProperty(SparklineElement.prototype, "options", {
-      get: function () {
-        return this._optionsProperty;
-      },
-      set: function (v) {
-        this._optionsProperty = v && typeof v === "object" ? v : undefined;
-        this.scheduleRender();
-      },
-      configurable: true,
-      enumerable: true,
-    });
+            get options() {
+              return this._optionsProperty;
+            }
 
-    return SparklineElement;
-  })();
+            set options(v) {
+              this._optionsProperty =
+                v && typeof v === "object" ? v : undefined;
+              this.scheduleRender();
+            }
+          }
+          return SparklineElement;
+        })()
+      : function () {};
 
   var commonAttrs = [
     "values",
@@ -4039,10 +4041,14 @@
   ]);
 
   function createSparklineClass(chartType, observedAttrs) {
-    function C() {
-      return SparklineElement.apply(this, arguments) || this;
+    var Base = SparklineElement;
+    if (typeof Base !== "function" || !Base.prototype) {
+      return function () {};
     }
-    C.prototype = Object.create(SparklineElement.prototype);
+    function C() {
+      return Reflect.construct(Base, [], C);
+    }
+    C.prototype = Object.create(Base.prototype);
     C.prototype.constructor = C;
     C.chartType = chartType;
     C.observedAttributes = observedAttrs;
@@ -4057,7 +4063,12 @@
   var SparkPieElement = createSparklineClass("pie", pieAttrs);
   var SparkBoxElement = createSparklineClass("box", boxAttrs);
 
-  if (typeof window !== "undefined" && window.customElements) {
+  if (
+    typeof window !== "undefined" &&
+    window.customElements &&
+    typeof SparklineElement === "function" &&
+    SparklineElement.prototype
+  ) {
     customElements.define("spark-line", SparkLineElement);
     customElements.define("spark-bar", SparkBarElement);
     customElements.define("spark-tristate", SparkTristateElement);

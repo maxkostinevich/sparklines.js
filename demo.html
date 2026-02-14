@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sparklines Bar Chart Demo - 200 Rows</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #f0f0f0;
+        font-weight: bold;
+        color: #444;
+      }
+      tr:hover {
+        background: #fafafa;
+      }
+      spark-bar {
+        display: inline-block;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Basic Bar Chart × 200 (Web Component)</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Label</th>
+            <th>Chart</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <script src="sparklines.js"></script>
+    <script>
+      (function () {
+        var tbody = document.getElementById("table-body");
+        for (var i = 1; i <= 200; i++) {
+          var values = [];
+          for (var j = 0; j < 8; j++) {
+            values.push(Math.floor(Math.random() * 10) + 1);
+          }
+          var valuesStr = values.join(",");
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            "<td>" +
+            i +
+            "</td><td>Row " +
+            i +
+            "</td><td><spark-bar values=\"" +
+            valuesStr +
+            "\" width=\"80\" height=\"30\" bar-color=\"#3366cc\" bar-width=\"6\" bar-spacing=\"2\"></spark-bar></td>";
+          tbody.appendChild(tr);
+        }
+      })();
+    </script>
+  </body>
+</html>
