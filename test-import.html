@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sparklines.js – Import test</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 20px;
+        max-width: 640px;
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+      }
+      .status {
+        padding: 10px 12px;
+        border-radius: 6px;
+        margin: 16px 0;
+        font-weight: 500;
+      }
+      .status.pass {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .status.fail {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .status.pending {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+      }
+      .chart-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 12px 0;
+      }
+      .chart-row span:first-child {
+        min-width: 120px;
+        font-size: 0.9rem;
+        color: #555;
+      }
+      .chart-container {
+        min-width: 120px;
+        min-height: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Import test</h1>
+    <p>
+      This page loads sparklines only from a module script (no classic
+      <code>&lt;script src="…"&gt;</code>). The library is loaded dynamically
+      and then used to draw the charts below.
+    </p>
+    <div id="status" class="status pending">Loading…</div>
+    <div id="charts" style="display: none;">
+      <div class="chart-row">
+        <span>Line</span>
+        <div id="line-chart" class="chart-container"></div>
+      </div>
+      <div class="chart-row">
+        <span>Bar</span>
+        <div id="bar-chart" class="chart-container"></div>
+      </div>
+      <div class="chart-row">
+        <span>Named exports</span>
+        <div id="named-chart" class="chart-container"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      const statusEl = document.getElementById("status");
+      const chartsEl = document.getElementById("charts");
+
+      function setStatus(pass, message) {
+        statusEl.className = "status " + (pass ? "pass" : "fail");
+        statusEl.textContent = message;
+      }
+
+      function loadSparklines() {
+        if (window.sparklines) return Promise.resolve(window.sparklines);
+        return new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = new URL("./sparklines.js", import.meta.url).href;
+          s.onload = () => resolve(window.sparklines);
+          s.onerror = () =>
+            reject(new Error("Failed to load sparklines.js"));
+          document.head.appendChild(s);
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const sparklines = await loadSparklines();
+
+          if (typeof sparklines !== "function") {
+            setStatus(false, "Fail: sparklines is not a function");
+            return;
+          }
+
+          sparklines("#line-chart", [1, 4, 6, 6, 8, 5, 3, 5], {
+            width: "120px",
+            height: "30px",
+          });
+          sparklines("#bar-chart", [3, 6, 2, 8, 4, 7], {
+            type: "bar",
+            width: "120px",
+            height: "30px",
+          });
+
+          if (
+            sparklines.SparklineElement &&
+            sparklines.elements &&
+            typeof sparklines.elements.line === "function"
+          ) {
+            sparklines("#named-chart", [2, 5, 3, 7, 4], {
+              width: "120px",
+              height: "30px",
+            });
+          } else {
+            document.getElementById("named-chart").textContent =
+              "N/A (no named exports)";
+          }
+
+          chartsEl.style.display = "block";
+          setStatus(
+            true,
+            "Import test passed: sparklines loaded from module and charts rendered."
+          );
+        } catch (err) {
+          setStatus(false, "Import test failed: " + (err.message || String(err)));
+          console.error(err);
+        }
+      });
+    </script>
+  </body>
+</html>
