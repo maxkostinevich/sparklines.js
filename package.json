@@ -1,0 +1,42 @@
+{
+  "name": "@maxkostinevich/sparklines",
+  "version": "1.0.0",
+  "description": "A lightweight, pure vanilla JavaScript library for creating sparkline charts. No jQuery dependency.",
+  "license": "MIT",
+  "author": "Max Kostinevich",
+  "main": "./sparklines.js",
+  "module": "./sparklines.mjs",
+  "browser": "./sparklines.js",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./sparklines.mjs",
+      "require": "./sparklines.js"
+    }
+  },
+  "files": [
+    "sparklines.js",
+    "sparklines.mjs",
+    "sparklines.min.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maxkostinevich/sparklines.js.git"
+  },
+  "homepage": "https://github.com/maxkostinevich/sparklines.js",
+  "bugs": {
+    "url": "https://github.com/maxkostinevich/sparklines.js/issues"
+  },
+  "keywords": [
+    "sparkline",
+    "chart",
+    "graph",
+    "canvas",
+    "visualization",
+    "web-components",
+    "vanilla-js"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

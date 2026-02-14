@@ -850,8 +850,10 @@
     addCSS(defaultStyles);
   };
 
-  // Initialize styles immediately
-  initStyles();
+  // Initialize styles immediately (only when document exists, e.g. browser)
+  if (typeof document !== "undefined") {
+    initStyles();
+  }
 
   pending = [];
 
@@ -4089,6 +4091,17 @@
     box: SparkBoxElement,
   };
 
-  // Export sparklines function
-  window.sparklines = sparklines;
-})(document, Math);
+  // Export
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = sparklines;
+  } else if (typeof define === "function" && define.amd) {
+    define(function () {
+      return sparklines;
+    });
+  }
+  if (typeof globalThis !== "undefined") {
+    globalThis.sparklines = sparklines;
+  } else if (typeof window !== "undefined") {
+    window.sparklines = sparklines;
+  }
+})(typeof document !== "undefined" ? document : undefined, Math);
